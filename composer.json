@@ -1,0 +1,34 @@
+{
+    "name": "codebuddyphp/codebuddy",
+    "description": "All-in-one tool for your codebase",
+    "type": "library",
+    "require": {
+        "php": "^8.2",
+        "laravel/framework": "^11.0",
+        "nunomaduro/termwind": "^2.3",
+        "laravel/pint": "^1.20",
+        "larastan/larastan": "^3.0",
+        "rector/rector": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Codebuddyphp\\Codebuddy\\": "src/"
+        }
+    },
+    "scripts": {
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Codebuddyphp\\Codebuddy\\CodebuddyServiceProvider"
+            ],
+            "aliases": {
+            }
+        }
+    },
+    "config": {
+        "preferred-install": "dist"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
