@@ -2,33 +2,41 @@
 
 namespace Codebuddyphp\Codebuddy;
 
-use Codebuddyphp\Codebuddy\Commands\Configure;
+use Codebuddyphp\Codebuddy\Commands\Scan;
+use Codebuddyphp\Codebuddy\Commands\Setup;
 use Illuminate\Support\ServiceProvider;
 
-class CodebuddyServiceProvider extends ServiceProvider
+final class CodebuddyServiceProvider extends ServiceProvider
 {
-    public function register()
-    {
-        // Register bindings if any
-    }
+    public function register(): void {}
 
-    public function boot()
+    public function boot(): void
     {
         if ($this->app->runningInConsole()) {
-            $this->commands([
-                Configure::class,
-            ]);
+
+            $this->commands(
+                [
+                    Setup::class,
+                    Scan::class,
+                ]
+            );
 
             $this->publishes([
                 __DIR__.'/../config/codebuddy.php' => config_path('codebuddy.php'),
             ]);
         }
+
+        $this->loadViewsFrom(__DIR__.'/../resources/views', 'codebuddy');
     }
 
-    public function provides()
+    /**
+     * @return array<string>
+     */
+    public function provides(): array
     {
         return [
-            Configure::class,
+            Setup::class,
+            Scan::class,
         ];
     }
 }
