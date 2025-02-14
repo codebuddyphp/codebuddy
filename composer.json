@@ -1,14 +1,18 @@
 {
     "name": "codebuddyphp/codebuddy",
-    "description": "All-in-one tool for your codebase",
+    "description": "All-in-one code quality tool for your codebase",
     "type": "library",
+    "keywords": ["testing", "development", "tool"],
+    "license": "MIT",
     "require": {
         "php": "^8.2",
-        "laravel/framework": "^11.0",
-        "nunomaduro/termwind": "^2.3",
-        "laravel/pint": "^1.20",
-        "larastan/larastan": "^3.0",
-        "rector/rector": "^2.0"
+        "laravel/framework": "^11|^12",
+        "laravel/pint": "^1",
+        "driftingly/rector-laravel": "^2",
+        "larastan/larastan": "^3",
+        "pestphp/pest": "^3"
+    },
+    "require-dev": {
     },
     "autoload": {
         "psr-4": {
@@ -16,6 +20,18 @@
         }
     },
     "scripts": {
+        "lint": "pint --test",
+        "lint.fix": "pint",
+        "rector": "rector process --dry-run",
+        "rector.fix": "rector process",
+        "ci": [
+            "@lint",
+            "@rector"
+        ],
+        "ci.fix": [
+            "@rector.fix",
+            "@lint.fix"
+        ]
     },
     "extra": {
         "laravel": {
@@ -27,7 +43,10 @@
         }
     },
     "config": {
-        "preferred-install": "dist"
+        "preferred-install": "dist",
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
     },
     "minimum-stability": "dev",
     "prefer-stable": true

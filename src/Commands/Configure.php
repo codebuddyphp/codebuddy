@@ -3,54 +3,74 @@
 namespace Codebuddyphp\Codebuddy\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Filesystem\Filesystem;
-use function Termwind\render;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\File;
 
-class Configure extends Command
+use function Laravel\Prompts\confirm;
+use function Laravel\Prompts\spin;
+
+final class Configure extends Command
 {
-    protected $signature = 'codebuddy:configure';
+    protected $signature = 'cb:configure';
 
-    protected $description = 'Configure Rector, Larastan (PHPStan) & Pint';
+    protected $description = 'Configures essential packages for your project';
 
     public function handle(): void
     {
-        $filesystem = new Filesystem();
+        $packages = Config::get('codebuddy.checks');
 
-        $configs = [
-            'rector.php',
-            'phpstan.neon',
-            'pint.json',
-        ];
+        if (! is_array($packages)) {
+            $this->warn('Vendor assets are not published. Please publish it first and re-run this command.');
 
-        foreach ($configs as $file) {
-            $sourceFile = __DIR__ . "/../../config/laravel/{$file}";
-            $destinationFile = base_path($file);
+            return;
+        }
 
-            if (!$filesystem->exists($sourceFile)) {
-                $this->error("Source file not found: {$sourceFile}");
-                continue;
-            }
+        foreach ($packages as $package) {
+            $this->configurePackage($package);
+        }
 
-            if ($filesystem->exists($destinationFile)) {
-                $overwrite = $this->confirmOverwrite($destinationFile);
-                if (!$overwrite) {
-                    $this->warn("Skipped: {$destinationFile} already exists");
-                    continue;
-                }
-            }
+        $this->newLine();
+        $this->info('Done!');
 
-            $filesystem->copy($sourceFile, $destinationFile);
-            $this->info("Copied: {$file} to project root");
-            $this->newLine();
+        $confirmed = confirm('Setup completed. Do you want to review codebase?');
+
+        if ($confirmed) {
+            $this->call(Review::class);
         }
     }
 
-    private function confirmOverwrite(string $file): bool
+    private function configurePackage(array $package): void
     {
-        $this->info(
-            sprintf('%s already exists. Do you want to overwrite it?', $file)
+        $this->newLine();
+
+        $this->line(sprintf('🚀 Configuring %s...', $package['package']));
+
+        if (File::exists(base_path($package['config_file'])) && ! confirm(
+            label: "{$package['config_file']} already exists. Do you want to override it?",
+        )) {
+            $this->info(sprintf('⏭️  %s: skipped', $package['package']));
+
+            return;
+        }
+
+        spin(
+            callback: function () use ($package): void {
+                sleep(1);
+
+                $result = File::copy(
+                    __DIR__.'/../../stubs/laravel/'.$package['stub_file'],
+                    base_path($package['config_file'])
+                );
+
+                if (! $result) {
+                    self::fail(
+                        sprintf('%s: failed to configure', $package['package'])
+                    );
+                }
+            },
+            message: 'Processing...'
         );
 
-        return $this->ask('Overwrite?', false);
+        $this->info(sprintf('✅ %s: configured', $package['package']));
     }
 }
